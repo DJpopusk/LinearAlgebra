@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/linear_solver1.dir/src/main.cpp.o CMakeFiles/linear_solver1.dir/src/Matrix.cpp.o -o linear_solver1
