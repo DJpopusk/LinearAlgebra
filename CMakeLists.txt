@@ -15,6 +15,7 @@ set(SOURCES
 set(HEADERS
         include/Matrix.hpp
         include/Exceptions.hpp
+        include/Parser.hpp
 )
 
 add_executable(linear_solver1 ${SOURCES})

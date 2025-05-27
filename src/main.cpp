@@ -1,4 +1,5 @@
 #include "Matrix.hpp"
+#include "Parser.hpp"
 #include <iostream>
 #include <random>
 #include <chrono>
@@ -147,35 +148,29 @@ void test_performance(size_t size) {
 }
 
 int main() {
+    try {
+
+        Matrix A = MatrixParser::readMatrixFromFile("/Users/phonkyponky/CLionProjects/LinearAlgebra/tests/matrixA.txt");
+
+        Matrix B = MatrixParser::readMatrixFromFile("/Users/phonkyponky/CLionProjects/LinearAlgebra/tests/matrixB.txt");
+
+        Matrix sumAB = A + B;
+        Matrix diffAB = A - B;
+        Matrix mulAB = A * B;
+        Matrix scalarMul = A * 2.5;
+
+        std::cout << "Matrix A:\n" << A << std::endl;
+        std::cout << "Matrix B:\n" << B << std::endl;
+
+        std::cout << "A + B:\n" << sumAB << std::endl;
+        std::cout << "A - B:\n" << diffAB << std::endl;
+        std::cout << "A * B:\n" << mulAB << std::endl;
+        std::cout << "A * 2.5:\n" << scalarMul << std::endl;
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "Ошибка: " << ex.what() << std::endl;
+    }
     // Correct operations
-    try {
-        test_performance(500);
-        test_performance(1000);
-        Matrix a = generate_random_matrix(10, 10);
-        Matrix b = generate_random_matrix(10, 10);
-
-        Matrix c = simple_subtract(a, b);
-        cout << c << endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Unexpected error: " << e.what() << std::endl;
-    }
-
-    // DimensionMismatchException
-    try {
-        Matrix a(2, 2);
-        Matrix b(3, 3);
-        Matrix sum = a + b;// Несовпадение размеров
-    } catch (const DimensionMismatchException& e) {
-        std::cerr << "\nCaught DimensionMismatch: " << e.what() << std::endl;
-    }
-
-    // OutOfBoundsException
-    try {
-        Matrix a(2, 2);
-        a(2, 2) = 5.0;  // Индексация с нуля, (2,2) выходит за пределы 2x2
-    } catch (const OutOfBoundsException& e) {
-        std::cerr << "Caught OutOfBounds: " << e.what() << std::endl;
-    }
 
     return 0;
 }
