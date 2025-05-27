@@ -1,3 +1,0 @@
-/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles/linear_solver1.dir
-/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles/edit_cache.dir
-/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles/rebuild_cache.dir
