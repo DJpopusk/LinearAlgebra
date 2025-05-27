@@ -1,7 +1,8 @@
 #include "Matrix.hpp"
 #include <thread>
 #include <vector>
-
+#include <iostream>
+#include <iomanip>
 
 Matrix::Matrix(size_t rows, size_t cols)
     : rows_(rows), cols_(cols), data_(rows * cols) {}
@@ -15,6 +16,17 @@ const double& Matrix::operator()(size_t row, size_t col) const {
     if (row >= rows_ || col >= cols_) throw OutOfBoundsException();
     return data_[row * cols_ + col];
 }
+std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
+    for (size_t i = 0; i < matrix.rows_; i++) {
+        for (size_t j = 0; j < matrix.cols_; j++) {
+            os << std::setw(8) << std::fixed << std::setprecision(2)
+               << matrix(i, j) << " ";
+        }
+        os << std::endl;
+    }
+    return os;
+}
+
 
 void Matrix::distribute_rows(size_t total_rows, size_t num_threads,
                             std::vector<std::thread>& threads,
@@ -27,7 +39,7 @@ void Matrix::distribute_rows(size_t total_rows, size_t num_threads,
             threads.emplace_back(worker, start, end);
         }
     }
-    for (auto& t : threads) t.join();
+    for (std::thread& t : threads) t.join();
     threads.clear();
 }
 

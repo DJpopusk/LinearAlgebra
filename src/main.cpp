@@ -2,10 +2,11 @@
 #include <iostream>
 #include <random>
 #include <chrono>
-#include <cmath> // For std::abs
+#include <cmath>
 
 using namespace std;
 using namespace std::chrono;
+
 
 Matrix generate_random_matrix(size_t rows, size_t cols) {
     random_device rd;
@@ -148,9 +149,13 @@ void test_performance(size_t size) {
 int main() {
     // Correct operations
     try {
-        Matrix a(2, 2);
         test_performance(500);
         test_performance(1000);
+        Matrix a = generate_random_matrix(10, 10);
+        Matrix b = generate_random_matrix(10, 10);
+
+        Matrix c = simple_subtract(a, b);
+        cout << c << endl;
     } catch (const std::exception& e) {
         std::cerr << "Unexpected error: " << e.what() << std::endl;
     }
@@ -159,7 +164,7 @@ int main() {
     try {
         Matrix a(2, 2);
         Matrix b(3, 3);
-        Matrix sum = a + b;  // Несовпадение размеров
+        Matrix sum = a + b;// Несовпадение размеров
     } catch (const DimensionMismatchException& e) {
         std::cerr << "\nCaught DimensionMismatch: " << e.what() << std::endl;
     }

@@ -21,7 +21,7 @@ public:
     Matrix operator*(double scalar) const;
 
     friend Matrix operator*(double scalar, const Matrix& matrix);
-
+    friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
 private:
     void distribute_rows(size_t total_rows, size_t num_threads,
                         std::vector<std::thread>& threads,
