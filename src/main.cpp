@@ -171,6 +171,55 @@ int main() {
         std::cerr << "Ошибка: " << ex.what() << std::endl;
     }
     // Correct operations
+    try {
+        test_performance(500);
+        test_performance(1000);
+        Matrix a = generate_random_matrix(10, 10);
+        Matrix b = generate_random_matrix(10, 10);
+
+        Matrix c = simple_subtract(a, b);
+        cout << c << endl;
+    } catch (const std::exception& e) {
+        std::cerr << "Unexpected error: " << e.what() << std::endl;
+    }
+
+    // DimensionMismatchException
+    try {
+        Matrix a(2, 2);
+        Matrix b(3, 3);
+        Matrix sum = a + b;// Несовпадение размеров
+    } catch (const DimensionMismatchException& e) {
+        std::cerr << "\nCaught DimensionMismatch: " << e.what() << std::endl;
+    }
+
+    // OutOfBoundsException
+    try {
+        Matrix a(2, 2);
+        a(2, 2) = 5.0;
+    } catch (const OutOfBoundsException& e) {
+        std::cerr << "Caught OutOfBounds: " << e.what() << std::endl;
+    }
+    try {
+        Matrix mat1 = MatrixParser::readMatrixFromFile("non_existent_file.txt");
+        std::cout << "Successfully read matrix from non_existent_file.txt\n";
+    } catch (const ParserException& ex) {
+        std::cerr << "[Parser Error - Nonexistent File]: " << ex.what() << "\n\n";
+    }
+
+    // Пример 2: Файл открыт, но содержит некорректные размеры
+    try {
+        Matrix mat2 = MatrixParser::readMatrixFromFile("/Users/phonkyponky/CLionProjects/LinearAlgebra/tests/invalidDimensions.txt");
+    } catch (const ParserException& ex) {
+        std::cerr << "[Parser Error - Invalid Dimensions]: " << ex.what() << "\n\n";
+    }
+
+    // Пример 3: Файл содержит меньше чисел, чем требуется
+    try {
+        Matrix mat3 = MatrixParser::readMatrixFromFile("/Users/phonkyponky/CLionProjects/LinearAlgebra/tests/incompleteData");
+        std::cout << "Successfully read matrix from incompleteData.txt\n";
+    } catch (const ParserException& ex) {
+        std::cerr << "[Parser Error - Incomplete Data]: " << ex.what() << "\n\n";
+    }
 
     return 0;
 }
