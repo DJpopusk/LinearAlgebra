@@ -1,54 +1,228 @@
 #include "Matrix.hpp"
 #include "Vector.hpp"
-#include "Parser.hpp"
 #include "ThreadPoolConfig.hpp"
 #include <iostream>
-#include <random>
 #include <chrono>
 #include <cmath>
 
 using namespace std;
 using namespace std::chrono;
 
-Matrix generate_random_matrix(size_t rows, size_t cols) {
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<> dis(-10.0, 10.0);
+Matrix simpleMultiply(const Matrix& a, const Matrix& b) {
+    if(a.getCols() != b.getRows()) throw DimensionMismatchException();
 
-    Matrix m(rows, cols);
-    for(size_t i = 0; i < rows; ++i) {
-        for(size_t j = 0; j < cols; ++j) {
-            m(i, j) = dis(gen);
+    Matrix result(a.getRows(), b.getCols());
+    for(size_t i = 0; i < a.getRows(); ++i) {
+        for(size_t j = 0; j < b.getCols(); ++j) {
+            double sum = 0.0;
+            for(size_t k = 0; k < a.getCols(); ++k) {
+                sum += a[i][k] * b[k][j];
+            }
+            result[i][j] = sum;
         }
     }
-    return m;
+    return result;
 }
 
-void testMatrixOperations() {
-    cout << "\n=== Testing Matrix Operations with double** ===\n";
+Matrix simpleAdd(const Matrix& a, const Matrix& b) {
+    if(a.getRows() != b.getRows() || a.getCols() != b.getCols())
+        throw DimensionMismatchException();
 
-    Matrix A(2, 3);
-    A(0, 0) = 1; A(0, 1) = 2; A(0, 2) = 3;
-    A(1, 0) = 4; A(1, 1) = 5; A(1, 2) = 6;
+    Matrix result(a.getRows(), a.getCols());
+    for(size_t i = 0; i < a.getRows(); ++i) {
+        for(size_t j = 0; j < a.getCols(); ++j) {
+             result[i][j] = a[i][j] + b[i][j];
+        }
+    }
+    return result;
+}
 
-    Matrix B(2, 3);
-    B(0, 0) = 7; B(0, 1) = 8; B(0, 2) = 9;
-    B(1, 0) = 10; B(1, 1) = 11; B(1, 2) = 12;
+Matrix simpleSubtract(const Matrix& a, const Matrix& b) {
+    if(a.getRows() != b.getRows() || a.getCols() != b.getCols())
+        throw DimensionMismatchException();
 
-    cout << "Matrix A:\n" << A << endl;
-    cout << "Matrix B:\n" << B << endl;
+    Matrix result(a.getRows(), a.getCols());
+    for(size_t i = 0; i < a.getRows(); ++i) {
+        for(size_t j = 0; j < a.getCols(); ++j) {
+            result[i][j] = a[i][j] - b[i][j];
+        }
+    }
+    return result;
+}
 
-    Matrix sum = A + B;
-    cout << "A + B:\n" << sum << endl;
+Matrix simpleTranspose(const Matrix& a) {
+    Matrix result(a.getCols(), a.getRows());
+    for(size_t i = 0; i < a.getRows(); ++i) {
+        for(size_t j = 0; j < a.getCols(); ++j) {
+            result[j][i] = a[i][j];
+        }
+    }
+    return result;
+}
 
-    Matrix diff = A - B;
-    cout << "A - B:\n" << diff << endl;
+bool compareResults(const Matrix& a, const Matrix& b) {
+    if(a.getRows() != b.getRows() || a.getCols() != b.getCols()) {
+        cout << "Results match: false (different sizes)\n";
+        return false;
+    }
 
-    Matrix scaled = A * 2.5;
-    cout << "A * 2.5:\n" << scaled << endl;
+    bool identical = true;
+    for(size_t i = 0; i < a.getRows() && identical; ++i) {
+        for(size_t j = 0; j < a.getCols() && identical; ++j) {
+            if(std::abs(a[i][j] - b[i][j]) > 1e-6) {
+                identical = false;
+            }
+        }
+    }
 
-    Matrix AT = A.transpose();
-    cout << "A^T:\n" << AT << endl;
+    cout << "Results match: " << boolalpha << identical << "\n";
+    return identical;
+}
+
+void testExceptions() {
+    cout << "\n=== Testing Exception Handling ===\n";
+
+    // Test DimensionMismatchException
+    try {
+        Matrix a(2, 3);
+        Matrix b(4, 2);
+        Matrix result = a + b;
+        cout << "ERROR: DimensionMismatchException not thrown!\n";
+    } catch (const DimensionMismatchException& e) {
+        cout << "✓ Caught DimensionMismatchException: " << e.what() << "\n";
+    }
+
+    // Test OutOfBoundsException for Matrix
+    try {
+        Matrix a(3, 3);
+        double val = a[5][2];
+        cout << "ERROR: OutOfBoundsException not thrown! val=" << val << "\n";
+    } catch (const OutOfBoundsException& e) {
+        cout << "✓ Caught OutOfBoundsException (Matrix): " << e.what() << "\n";
+    }
+
+    // Test OutOfBoundsException for Vector
+    try {
+        Vector v(5);
+        double val = v[10];
+        cout << "ERROR: OutOfBoundsException not thrown! val=" << val << "\n";
+    } catch (const OutOfBoundsException& e) {
+        cout << "✓ Caught OutOfBoundsException (Vector): " << e.what() << "\n";
+    }
+
+    // Test InvalidMatrixOperationException
+    try {
+        Vector v1(2);
+        Vector v2(2);
+        Vector cross_result = v1.cross(v2);
+        cout << "ERROR: InvalidMatrixOperationException not thrown!\n";
+    } catch (const InvalidMatrixOperationException& e) {
+        cout << "✓ Caught InvalidMatrixOperationException: " << e.what() << "\n";
+    }
+
+    // Test Vector dimension mismatch
+    try {
+        Vector v1(3);
+        Vector v2(5);
+        Vector result = v1 + v2;
+        cout << "ERROR: DimensionMismatchException not thrown!\n";
+    } catch (const DimensionMismatchException& e) {
+        cout << "✓ Caught DimensionMismatchException (Vector): " << e.what() << "\n";
+    }
+
+    cout << "Exception testing completed!\n";
+}
+
+void testPerformance(size_t size) {
+    try {
+        cout << "\nTesting performance for " << size << "x" << size << " matrices:\n";
+
+        auto start_gen = high_resolution_clock::now();
+        Matrix a = Matrix::generateRandom(size, size);
+        Matrix b = Matrix::generateRandom(size, size);
+        auto end_gen = high_resolution_clock::now();
+        cout << "• Generation time: "
+             << duration_cast<milliseconds>(end_gen - start_gen).count()
+             << " ms\n";
+
+        a.saveToFile("../tests/matrix_a.txt");
+        b.saveToFile("../tests/matrix_b.txt");
+
+        auto start_parallel = high_resolution_clock::now();
+        Matrix parallel_result = a * b;
+        auto end_parallel = high_resolution_clock::now();
+        cout << "• Parallel multiply: "
+             << duration_cast<milliseconds>(end_parallel - start_parallel).count()
+             << " ms\n";
+        parallel_result.saveToFile("../tests/cpp_multiply_result.txt");
+
+        auto start_simple = high_resolution_clock::now();
+        Matrix simple_result = simpleMultiply(a, b);
+        auto end_simple = high_resolution_clock::now();
+        cout << "• Simple multiply: "
+             << duration_cast<milliseconds>(end_simple - start_simple).count()
+             << " ms\n";
+
+        cout << "• ";
+        compareResults(parallel_result, simple_result);
+
+        auto start_parallel_add = high_resolution_clock::now();
+        Matrix parallel_add = a + b;
+        auto end_parallel_add = high_resolution_clock::now();
+        cout << "• Parallel add: "
+             << duration_cast<milliseconds>(end_parallel_add - start_parallel_add).count()
+             << " ms\n";
+        parallel_add.saveToFile("../tests/cpp_add_result.txt");
+
+        auto start_simple_add = high_resolution_clock::now();
+        Matrix simple_add_result = simpleAdd(a, b);
+        auto end_simple_add = high_resolution_clock::now();
+        cout << "• Simple add: "
+             << duration_cast<milliseconds>(end_simple_add - start_simple_add).count()
+             << " ms\n";
+
+        cout << "• ";
+        compareResults(parallel_add, simple_add_result);
+
+        auto start_parallel_sub = high_resolution_clock::now();
+        Matrix parallel_sub = a - b;
+        auto end_parallel_sub = high_resolution_clock::now();
+        cout << "• Parallel sub: "
+             << duration_cast<milliseconds>(end_parallel_sub - start_parallel_sub).count()
+             << " ms\n";
+        parallel_sub.saveToFile("../tests/cpp_sub_result.txt");
+
+        auto start_simple_sub = high_resolution_clock::now();
+        Matrix simple_sub_result = simpleSubtract(a, b);
+        auto end_simple_sub = high_resolution_clock::now();
+        cout << "• Simple sub: "
+             << duration_cast<milliseconds>(end_simple_sub - start_simple_sub).count()
+             << " ms\n";
+
+        cout << "• ";
+        compareResults(parallel_sub, simple_sub_result);
+
+        auto start_parallel_transpose = high_resolution_clock::now();
+        Matrix parallel_transpose = a.transpose();
+        auto end_parallel_transpose = high_resolution_clock::now();
+        cout << "• Parallel transpose: "
+             << duration_cast<milliseconds>(end_parallel_transpose - start_parallel_transpose).count()
+             << " ms\n";
+        parallel_transpose.saveToFile("../tests/cpp_transpose_result.txt");
+
+        auto start_simple_transpose = high_resolution_clock::now();
+        Matrix simple_transpose_result = simpleTranspose(a);
+        auto end_simple_transpose = high_resolution_clock::now();
+        cout << "• Simple transpose: "
+             << duration_cast<milliseconds>(end_simple_transpose - start_simple_transpose).count()
+             << " ms\n";
+
+        cout << "• ";
+        compareResults(parallel_transpose, simple_transpose_result);
+
+    } catch(const exception& e) {
+        cerr << "Error: " << e.what() << endl;
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -70,20 +244,12 @@ int main(int argc, char* argv[]) {
     ThreadPoolConfig::setNumThreads(num_threads);
 
     try {
-        testMatrixOperations();
+        testExceptions();
+        testPerformance(500);
+        testPerformance(1000);
 
-        cout << "\n=== Performance Testing with double** ===\n";
-
-        Matrix A = generate_random_matrix(100, 100);
-        Matrix B = generate_random_matrix(100, 100);
-
-        auto start = high_resolution_clock::now();
-        Matrix C = A * B;
-        auto end = high_resolution_clock::now();
-
-        cout << "Matrix multiplication (100x100): "
-             << duration_cast<milliseconds>(end - start).count()
-             << " ms\n";
+        cout << "\n=== Files saved for Python verification ===\n";
+        cout << "Run 'python3 verify_results.py' to verify results with NumPy\n";
 
     } catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;

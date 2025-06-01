@@ -30,7 +30,6 @@ public:
     }
 };
 
-// Новая ошибка парсера
 class ParserException : public std::exception {
 public:
     explicit ParserException(const std::string& message) : msg_(message) {}

@@ -18,7 +18,6 @@ set(HEADERS
         include/Matrix.hpp
         include/Vector.hpp
         include/Exceptions.hpp
-        include/Parser.hpp
         include/ThreadPoolConfig.hpp
 )
 
