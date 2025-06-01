@@ -100,19 +100,51 @@ CMakeFiles/linear_solver1.dir/src/Matrix.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/linear_solver1.dir/src/Matrix.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/phonkyponky/CLionProjects/LinearAlgebra/src/Matrix.cpp -o CMakeFiles/linear_solver1.dir/src/Matrix.cpp.s
 
+CMakeFiles/linear_solver1.dir/src/Vector.cpp.o: CMakeFiles/linear_solver1.dir/flags.make
+CMakeFiles/linear_solver1.dir/src/Vector.cpp.o: /Users/phonkyponky/CLionProjects/LinearAlgebra/src/Vector.cpp
+CMakeFiles/linear_solver1.dir/src/Vector.cpp.o: CMakeFiles/linear_solver1.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/linear_solver1.dir/src/Vector.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/linear_solver1.dir/src/Vector.cpp.o -MF CMakeFiles/linear_solver1.dir/src/Vector.cpp.o.d -o CMakeFiles/linear_solver1.dir/src/Vector.cpp.o -c /Users/phonkyponky/CLionProjects/LinearAlgebra/src/Vector.cpp
+
+CMakeFiles/linear_solver1.dir/src/Vector.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/linear_solver1.dir/src/Vector.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/phonkyponky/CLionProjects/LinearAlgebra/src/Vector.cpp > CMakeFiles/linear_solver1.dir/src/Vector.cpp.i
+
+CMakeFiles/linear_solver1.dir/src/Vector.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/linear_solver1.dir/src/Vector.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/phonkyponky/CLionProjects/LinearAlgebra/src/Vector.cpp -o CMakeFiles/linear_solver1.dir/src/Vector.cpp.s
+
+CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o: CMakeFiles/linear_solver1.dir/flags.make
+CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o: /Users/phonkyponky/CLionProjects/LinearAlgebra/src/ThreadPoolConfig.cpp
+CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o: CMakeFiles/linear_solver1.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o -MF CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o.d -o CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o -c /Users/phonkyponky/CLionProjects/LinearAlgebra/src/ThreadPoolConfig.cpp
+
+CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/phonkyponky/CLionProjects/LinearAlgebra/src/ThreadPoolConfig.cpp > CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.i
+
+CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/phonkyponky/CLionProjects/LinearAlgebra/src/ThreadPoolConfig.cpp -o CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.s
+
 # Object files for target linear_solver1
 linear_solver1_OBJECTS = \
 "CMakeFiles/linear_solver1.dir/src/main.cpp.o" \
-"CMakeFiles/linear_solver1.dir/src/Matrix.cpp.o"
+"CMakeFiles/linear_solver1.dir/src/Matrix.cpp.o" \
+"CMakeFiles/linear_solver1.dir/src/Vector.cpp.o" \
+"CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o"
 
 # External object files for target linear_solver1
 linear_solver1_EXTERNAL_OBJECTS =
 
 linear_solver1: CMakeFiles/linear_solver1.dir/src/main.cpp.o
 linear_solver1: CMakeFiles/linear_solver1.dir/src/Matrix.cpp.o
+linear_solver1: CMakeFiles/linear_solver1.dir/src/Vector.cpp.o
+linear_solver1: CMakeFiles/linear_solver1.dir/src/ThreadPoolConfig.cpp.o
 linear_solver1: CMakeFiles/linear_solver1.dir/build.make
 linear_solver1: CMakeFiles/linear_solver1.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable linear_solver1"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/phonkyponky/CLionProjects/LinearAlgebra/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable linear_solver1"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/linear_solver1.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

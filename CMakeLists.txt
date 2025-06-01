@@ -10,12 +10,16 @@ include_directories(include)
 set(SOURCES
         src/main.cpp
         src/Matrix.cpp
+        src/Vector.cpp
+        src/ThreadPoolConfig.cpp
 )
 
 set(HEADERS
         include/Matrix.hpp
+        include/Vector.hpp
         include/Exceptions.hpp
         include/Parser.hpp
+        include/ThreadPoolConfig.hpp
 )
 
 add_executable(linear_solver1 ${SOURCES})

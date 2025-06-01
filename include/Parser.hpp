@@ -2,11 +2,11 @@
 #include <fstream>
 #include <string>
 #include "Matrix.hpp"
+#include "Vector.hpp"
 #include "Exceptions.hpp"
 
 class MatrixParser {
 public:
-
     static Matrix readMatrixFromFile(const std::string& filename) {
         std::ifstream file(filename);
         if (!file.is_open()) {
@@ -36,5 +36,32 @@ public:
             }
         }
         return mat;
+    }
+
+    static Vector readVectorFromFile(const std::string& filename) {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            throw ParserException("Failed to open file: " + filename);
+        }
+
+        size_t size = 0;
+        file >> size;
+        if (!file.good() || size == 0) {
+            throw ParserException("Invalid vector size in file: " + filename);
+        }
+
+        Vector vec(size);
+        for (size_t i = 0; i < size; ++i) {
+            double value = 0.0;
+            if (!(file >> value)) {
+                throw ParserException(
+                    "Failed to read vector element at index "
+                    + std::to_string(i)
+                    + " in file: " + filename
+                );
+            }
+            vec(i) = value;
+        }
+        return vec;
     }
 };
