@@ -50,18 +50,19 @@ void Matrix::deallocateMemory() {
 }
 
 void Matrix::copyData(const Matrix& other) {
-    const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
+    const size_t total_elements = rows_ * cols_;
+    const size_t num_threads = std::min(total_elements, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    auto worker = [&](size_t start, size_t end) {
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < cols_; ++j) {
-                data_[i][j] = other.data_[i][j];
-            }
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem / cols_;
+            size_t j = elem % cols_;
+            data_[i][j] = other.data_[i][j];
         }
     };
 
-    distributeRows(rows_, num_threads, threads, worker);
+    distributeElements(total_elements, num_threads, threads, worker);
 }
 
 double* Matrix::operator[](size_t row) {
@@ -74,18 +75,49 @@ const double* Matrix::operator[](size_t row) const {
     return data_[row];
 }
 
-void Matrix::distributeRows(size_t total_rows, size_t num_threads,
-                           std::vector<std::thread>& threads,
-                           std::function<void(size_t, size_t)> worker) const {
-    const size_t chunk = (total_rows + num_threads - 1) / num_threads;
-    for (size_t t = 0; t < num_threads; ++t) {
-        const size_t start = t * chunk;
-        const size_t end = std::min(start + chunk, total_rows);
-        if (start < end) {
-            threads.emplace_back(worker, start, end);
-        }
+void Matrix::distributeElements(size_t total_elements, size_t num_threads,
+                               std::vector<std::thread>& threads,
+                               std::function<void(size_t, size_t)> worker) const {
+    if (total_elements == 0) {
+        return; // Нет работы для выполнения
     }
-    for (std::thread& t : threads) t.join();
+
+    // Ограничиваем количество потоков количеством элементов
+    const size_t effective_threads = std::min(num_threads, total_elements);
+
+    if (effective_threads == 0) {
+        return;
+    }
+
+    // Базовое количество элементов на поток (округление вниз)
+    const size_t base_chunk = total_elements / effective_threads;
+    // Количество оставшихся элементов для распределения
+    const size_t remainder = total_elements % effective_threads;
+
+    size_t current_element = 0;
+
+    for (size_t t = 0; t < effective_threads; ++t) {
+        size_t chunk_size = base_chunk;
+
+        // Если есть оставшиеся элементы, добавляем их к последним потокам
+        if (remainder > 0 && t >= (effective_threads - remainder)) {
+            chunk_size += 1;
+        }
+
+        const size_t start_element = current_element;
+        const size_t end_element = start_element + chunk_size;
+
+        if (start_element < total_elements && chunk_size > 0) {
+            threads.emplace_back(worker, start_element, end_element);
+        }
+
+        current_element += chunk_size;
+    }
+
+    // Ожидаем завершения всех потоков
+    for (std::thread& t : threads) {
+        t.join();
+    }
     threads.clear();
 }
 
@@ -94,18 +126,19 @@ Matrix Matrix::operator+(const Matrix& other) const {
         throw DimensionMismatchException();
 
     Matrix result(rows_, cols_);
-    const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
+    const size_t total_elements = rows_ * cols_;
+    const size_t num_threads = std::min(total_elements, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    auto worker = [&](size_t start, size_t end) {
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < cols_; ++j) {
-                result.data_[i][j] = data_[i][j] + other.data_[i][j];
-            }
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem / cols_;
+            size_t j = elem % cols_;
+            result.data_[i][j] = data_[i][j] + other.data_[i][j];
         }
     };
 
-    distributeRows(rows_, num_threads, threads, worker);
+    distributeElements(total_elements, num_threads, threads, worker);
     return result;
 }
 
@@ -114,18 +147,19 @@ Matrix Matrix::operator-(const Matrix& other) const {
         throw DimensionMismatchException();
 
     Matrix result(rows_, cols_);
-    const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
+    const size_t total_elements = rows_ * cols_;
+    const size_t num_threads = std::min(total_elements, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    auto worker = [&](size_t start, size_t end) {
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < cols_; ++j) {
-                result.data_[i][j] = data_[i][j] - other.data_[i][j];
-            }
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem / cols_;
+            size_t j = elem % cols_;
+            result.data_[i][j] = data_[i][j] - other.data_[i][j];
         }
     };
 
-    distributeRows(rows_, num_threads, threads, worker);
+    distributeElements(total_elements, num_threads, threads, worker);
     return result;
 }
 
@@ -133,39 +167,41 @@ Matrix Matrix::operator*(const Matrix& other) const {
     if (cols_ != other.rows_) throw DimensionMismatchException();
 
     Matrix result(rows_, other.cols_);
-    const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
+    const size_t total_elements = rows_ * other.cols_;
+    const size_t num_threads = std::min(total_elements, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    auto worker = [&](size_t start, size_t end) {
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < other.cols_; ++j) {
-                double sum = 0.0;
-                for (size_t k = 0; k < cols_; ++k) {
-                    sum += data_[i][k] * other.data_[k][j];
-                }
-                result.data_[i][j] = sum;
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem / other.cols_;
+            size_t j = elem % other.cols_;
+            double sum = 0.0;
+            for (size_t k = 0; k < cols_; ++k) {
+                sum += data_[i][k] * other.data_[k][j];
             }
+            result.data_[i][j] = sum;
         }
     };
 
-    distributeRows(rows_, num_threads, threads, worker);
+    distributeElements(total_elements, num_threads, threads, worker);
     return result;
 }
 
 Matrix Matrix::operator*(double scalar) const {
     Matrix result(rows_, cols_);
-    const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
+    const size_t total_elements = rows_ * cols_;
+    const size_t num_threads = std::min(total_elements, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    auto worker = [&](size_t start, size_t end) {
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < cols_; ++j) {
-                result.data_[i][j] = data_[i][j] * scalar;
-            }
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem / cols_;
+            size_t j = elem % cols_;
+            result.data_[i][j] = data_[i][j] * scalar;
         }
     };
 
-    distributeRows(rows_, num_threads, threads, worker);
+    distributeElements(total_elements, num_threads, threads, worker);
     return result;
 }
 
@@ -176,24 +212,18 @@ Vector Matrix::operator*(const Vector& vec) const {
     const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    const size_t chunk = (rows_ + num_threads - 1) / num_threads;
-    for (size_t t = 0; t < num_threads; ++t) {
-        const size_t start = t * chunk;
-        const size_t end = std::min(start + chunk, rows_);
-        if (start < end) {
-            threads.emplace_back([&, start, end]() {
-                for (size_t i = start; i < end; ++i) {
-                    double sum = 0.0;
-                    for (size_t j = 0; j < cols_; ++j) {
-                        sum += data_[i][j] * vec[j];
-                    }
-                    result[i] = sum;
-                }
-            });
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem; // для Vector умножения элемент = строка
+            double sum = 0.0;
+            for (size_t j = 0; j < cols_; ++j) {
+                sum += data_[i][j] * vec[j];
+            }
+            result[i] = sum;
         }
-    }
+    };
 
-    for (std::thread& t : threads) t.join();
+    distributeElements(rows_, num_threads, threads, worker);
     return result;
 }
 
@@ -204,41 +234,36 @@ Vector Matrix::leftMultiply(const Vector& vec) const {
     const size_t num_threads = std::min(cols_, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    const size_t chunk = (cols_ + num_threads - 1) / num_threads;
-    for (size_t t = 0; t < num_threads; ++t) {
-        const size_t start = t * chunk;
-        const size_t end = std::min(start + chunk, cols_);
-        if (start < end) {
-            threads.emplace_back([&, start, end]() {
-                for (size_t j = start; j < end; ++j) {
-                    double sum = 0.0;
-                    for (size_t i = 0; i < rows_; ++i) {
-                        sum += vec[i] * data_[i][j];
-                    }
-                    result[j] = sum;
-                }
-            });
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t j = elem; // для Vector умножения элемент = столбец
+            double sum = 0.0;
+            for (size_t i = 0; i < rows_; ++i) {
+                sum += vec[i] * data_[i][j];
+            }
+            result[j] = sum;
         }
-    }
+    };
 
-    for (std::thread& t : threads) t.join();
+    distributeElements(cols_, num_threads, threads, worker);
     return result;
 }
 
 Matrix Matrix::transpose() const {
     Matrix result(cols_, rows_);
-    const size_t num_threads = std::min(rows_, ThreadPoolConfig::getNumThreads());
+    const size_t total_elements = rows_ * cols_;
+    const size_t num_threads = std::min(total_elements, ThreadPoolConfig::getNumThreads());
     std::vector<std::thread> threads;
 
-    auto worker = [&](size_t start, size_t end) {
-        for (size_t i = start; i < end; ++i) {
-            for (size_t j = 0; j < cols_; ++j) {
-                result.data_[j][i] = data_[i][j];
-            }
+    auto worker = [&](size_t start_elem, size_t end_elem) {
+        for (size_t elem = start_elem; elem < end_elem; ++elem) {
+            size_t i = elem / cols_;
+            size_t j = elem % cols_;
+            result.data_[j][i] = data_[i][j];
         }
     };
 
-    distributeRows(rows_, num_threads, threads, worker);
+    distributeElements(total_elements, num_threads, threads, worker);
     return result;
 }
 

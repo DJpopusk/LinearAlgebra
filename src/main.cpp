@@ -8,6 +8,66 @@
 using namespace std;
 using namespace std::chrono;
 
+void testDistributeElementsWithDifferentSizes() {
+    std::cout << "\n=== distributeElements test===" << std::endl;
+
+    struct TestCase {
+        size_t rows, cols, threads;
+        std::string description;
+    };
+
+    std::vector<TestCase> testCases = {
+        {2, 2, 5, "2x2 , 5"},
+        {4, 2, 3, "4x2 , 3"},
+        {5, 3, 4, "5x3 , 4"},
+        {1, 10, 3, "1x10 , 3"},
+        {3, 3, 4, "3x3, 4"}
+    };
+
+    for (const auto& testCase : testCases) {
+        std::cout << "\n" << testCase.description << std::endl;
+
+        ThreadPoolConfig::setNumThreads(testCase.threads);
+
+        size_t total_elements = testCase.rows * testCase.cols;
+        size_t effective_threads = std::min(testCase.threads, total_elements);
+        size_t base_chunk = total_elements / effective_threads;
+        size_t remainder = total_elements % effective_threads;
+
+        std::cout << "Elements: " << total_elements << std::endl;
+        std::cout << "Effective threads cnt: " << effective_threads << std::endl;
+        std::cout << "Chunk base size: " << base_chunk << std::endl;
+        std::cout << "Reminder: " << remainder << std::endl;
+
+        size_t current_element = 0;
+        for (size_t t = 0; t < effective_threads; ++t) {
+            size_t chunk_size = base_chunk;
+            if (remainder > 0 && t >= (effective_threads - remainder)) {
+                chunk_size += 1;
+            }
+
+            std::cout << "- Thread " << (t + 1) << ": el "
+                     << current_element << "-" << (current_element + chunk_size - 1)
+                     << " (" << chunk_size << " els)" << std::endl;
+
+            current_element += chunk_size;
+        }
+
+        Matrix m1(testCase.rows, testCase.cols);
+        Matrix m2(testCase.rows, testCase.cols);
+
+        for (size_t i = 0; i < testCase.rows; ++i) {
+            for (size_t j = 0; j < testCase.cols; ++j) {
+                m1[i][j] = i * testCase.cols + j + 1;
+                m2[i][j] = 1.0;
+            }
+        }
+
+        Matrix result = m1 + m2;
+        std::cout << "✓" << std::endl;
+    }
+}
+
 Matrix simpleMultiply(const Matrix& a, const Matrix& b) {
     if(a.getCols() != b.getRows()) throw DimensionMismatchException();
 
@@ -251,7 +311,18 @@ int main(int argc, char* argv[]) {
         cout << "\n=== Files saved for Python verification ===\n";
         cout << "Run 'python3 verify_results.py' to verify results with NumPy\n";
 
-    } catch (const exception& e) {
+    }
+    catch (const exception& e) {
+        cerr << "Error: " << e.what() << endl;
+        return 1;
+    }
+    try {
+        testDistributeElementsWithDifferentSizes();
+
+        std::cout << "\n=== Все тесты завершены ===" << std::endl;
+
+    }
+    catch (const exception& e) {
         cerr << "Error: " << e.what() << endl;
         return 1;
     }

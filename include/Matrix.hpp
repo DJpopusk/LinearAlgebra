@@ -40,11 +40,10 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Matrix& matrix);
 
 private:
-    void distributeRows(size_t total_rows, size_t num_threads,
-                       std::vector<std::thread>& threads,
-                       std::function<void(size_t, size_t)> worker) const;
+    void distributeElements(size_t total_elements, size_t num_threads,
+                           std::vector<std::thread>& threads,
+                           std::function<void(size_t, size_t)> worker) const;
 
-    // Вспомогательные методы для управления памятью
     void allocateMemory();
     void deallocateMemory();
     void copyData(const Matrix& other);
